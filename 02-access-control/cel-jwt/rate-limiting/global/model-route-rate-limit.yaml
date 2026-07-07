@@ -1,0 +1,27 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: qwen3-06b-rate-limit
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: qwen3-06b-proxy-http-route
+  traffic:
+    rateLimit:
+      global:
+        backendRef:
+          name: rate-limit-server
+          namespace: agentgateway-system
+          port: 8081
+        domain: agentgateway
+        descriptors:
+          - entries:
+              - name: x-user-id
+                expression: 'request.headers["x-user-id"]'
+            unit: Tokens
+          - entries:
+              - name: x-user-id
+                expression: 'request.headers["x-user-id"]'
+            unit: Requests

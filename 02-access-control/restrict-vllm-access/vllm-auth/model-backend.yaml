@@ -1,0 +1,18 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: qwen3-06b-agentgateway-backend
+  namespace: agentgateway-system
+spec:
+  ai:
+    groups:
+      - providers:
+          - name: qwen3-06b
+            openai:
+              model: qwen3-06b
+            host: qwen3-06b-service.vllm.svc.cluster.local
+            port: 80
+            policies: 
+              auth:
+                secretRef:
+                  name: vllm-backend-auth # Update this section with secret name

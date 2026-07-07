@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: llm-api-keys
+  namespace: agentgateway-system
+type: Opaque
+stringData:
+  alice: |
+    { "key": "sk-alice-abc123def456", "metadata": { "user_id": "alice", "tier": "free" } }
+  bob: |
+    { "key": "sk-bob-xyz789uvw012", "metadata": { "user_id": "bob", "tier": "standard" } }
+  candice: |
+    { "key": "sk-candice-xfh7duvw012", "metadata": { "user_id": "candice", "tier": "pro" } }
+  dylan: |
+    { "key": "sk-dylan-xy67891rvw012", "metadata": { "user_id": "dylan", "tier": "standard" } }

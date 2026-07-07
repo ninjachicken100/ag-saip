@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit
+  namespace: agentgateway-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratelimit
+  template:
+    metadata:
+      labels:
+        app: ratelimit
+    spec:
+      containers:
+        - name: ratelimit
+          image: envoyproxy/ratelimit:master
+          command: ["/bin/ratelimit"]
+          env:
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+            - name: REDIS_URL
+              value: redis:6379
+            - name: RUNTIME_ROOT
+              value: /data
+            - name: RUNTIME_SUBDIRECTORY
+              value: ratelimit
+            - name: RUNTIME_WATCH_ROOT
+              value: "false"
+            - name: USE_STATSD
+              value: "false"
+          ports:
+            - containerPort: 8081
+              name: grpc
+          volumeMounts:
+            - name: config
+              mountPath: /data/ratelimit/config/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: rate-limit-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratelimit
+  namespace: agentgateway-system
+spec:
+  selector:
+    app: ratelimit
+  ports:
+    - name: grpc
+      port: 8081
+      targetPort: 8081

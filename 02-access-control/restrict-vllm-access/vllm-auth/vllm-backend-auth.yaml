@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vllm-backend-auth
+  namespace: agentgateway-system
+type: Opaque
+stringData:
+  Authorization: "m3shic000d"

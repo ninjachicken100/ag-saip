@@ -1,0 +1,81 @@
+# Gateway-level policy: JWT authentication only (validates token signature/issuer for all routes)
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: jwt-authn-policy
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: agentgateway-proxy
+  traffic:
+    jwtAuthentication:
+      providers:
+      - issuer: "https://keycloak-ai-platforms-service-keycloak.apps-crc.testing/realms/chat-applications" # edit to match your OIDC provider
+        jwks:
+          remote:
+            backendRef:
+              name: keycloak-ai-platforms-service
+              namespace: keycloak
+              port: 8443
+            jwksPath: "/realms/chat-applications/protocol/openid-connect/certs"
+---
+# librechat routes: only librechat-ID tokens, full-access gets both models, partial-access gets qwen3-06b only
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: librechat-authz-policy
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: librechat-qwen3-route
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: librechat-qwen25vl-route
+  traffic:
+    authorization:
+      action: Allow
+      policy:
+        matchExpressions:
+        - 'jwt.azp == "librechat-ID"
+          && ("full-access" in jwt.groups || "partial-access" in jwt.groups)'
+---
+# librechat qwen25-vl-instruct route: full-access only (partial-access cannot reach this route)
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: librechat-qwen25vl-authz-policy
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: librechat-qwen25vl-route
+  traffic:
+    authorization:
+      action: Allow
+      policy:
+        matchExpressions:
+        - 'jwt.azp == "librechat-ID" && "full-access" in jwt.groups'
+---
+# librechat-two routes: only librechat-two-ID tokens
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: librechat-two-authz-policy
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: librechat-two-qwen3-route
+  traffic:
+    authorization:
+      action: Allow
+      policy:
+        matchExpressions:
+        - 'jwt.azp == "librechat-two-ID"
+          && ("full-access" in jwt.groups || "partial-access" in jwt.groups)'

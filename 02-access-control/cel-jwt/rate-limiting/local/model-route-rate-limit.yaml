@@ -1,0 +1,18 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: qwen3-06b-rate-limit
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: qwen3-06b-proxy-http-route
+  traffic:
+    rateLimit:
+      local:
+      - tokens: 100 # 10k token rate limit
+        unit: Minutes
+      - requests: 10 # Request-based rate limiting
+        unit: Minutes
+        burst: 5 # Optional burst capacity for handling traffic spikes

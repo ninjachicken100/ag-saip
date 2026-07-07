@@ -1,0 +1,79 @@
+# --- librechat routes (qwen3-06b + qwen25-vl-instruct) ---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: librechat-qwen3-route
+  namespace: agentgateway-system
+spec:
+  parentRefs:
+  - name: agentgateway-proxy
+    namespace: agentgateway-system
+  hostnames:
+  - "librechat-gateway.agentgateway-system.svc.cluster.local"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /v1
+      headers:
+      - name: x-model
+        type: RegularExpression
+        value: qwen3-06b
+    backendRefs:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
+      name: qwen3-06b-agentgateway-backend
+      namespace: agentgateway-system
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: librechat-qwen25vl-route
+  namespace: agentgateway-system
+spec:
+  parentRefs:
+  - name: agentgateway-proxy
+    namespace: agentgateway-system
+  hostnames:
+  - "librechat-gateway.agentgateway-system.svc.cluster.local"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /v1
+      headers:
+      - name: x-model
+        type: RegularExpression
+        value: qwen25-vl-instruct
+    backendRefs:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
+      name: qwen25-vl-instruct-agentgateway-backend
+      namespace: agentgateway-system
+---
+# --- librechat-two route (qwen3-06b only) ---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: librechat-two-qwen3-route
+  namespace: agentgateway-system
+spec:
+  parentRefs:
+  - name: agentgateway-proxy
+    namespace: agentgateway-system
+  hostnames:
+  - "librechat-two-gateway.agentgateway-system.svc.cluster.local"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /v1
+      headers:
+      - name: x-model
+        type: RegularExpression
+        value: qwen3-06b
+    backendRefs:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
+      name: qwen3-06b-agentgateway-backend
+      namespace: agentgateway-system

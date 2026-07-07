@@ -1,0 +1,67 @@
+# -- vLLM container command and arguments
+command:
+  - "vllm"
+  - "serve"
+  - "/data/"
+  - "--served-model-name"
+  - "qwen3-06b" 
+  - --max-model-len=2048 
+  - --gpu-memory-utilization=0.25 
+  - --api-key=$(VLLM_API_KEY)
+
+  
+
+mountPath: "/data"
+
+modelDownload:
+
+  enabled: true
+
+  s3SecretName: "vllm-s3-credentials"
+
+  existingSecretName: vllm-s3-credentials
+
+  size: "30Gi"
+
+  storageClassName: "" 
+
+  s3modelpath: "qwen3-06b"
+
+
+existingClaim: 
+
+  useExistingClaim: false
+
+huggingFace:
+
+  enabled: false
+
+configs:
+  HOME: /tmp
+
+resources:
+  requests:
+    cpu: 2
+    memory: 4Gi
+    nvidia.com/gpu: 1
+  limits:
+    cpu: 2
+    memory: 4Gi
+    nvidia.com/gpu: 1
+
+Controls traffic routing, removes from service if failing
+readinessProbe:
+  httpGet: null
+  exec:
+    command:
+      - sh
+      - -c
+      - |
+        curl -sf -H "Authorization: Bearer $VLLM_API_KEY" http://localhost:8000/v1/models
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+externalConfigs:
+  - secretRef:
+      name: vllm-api-key

@@ -1,0 +1,26 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: daily-token-budget
+  namespace: agentgateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: agentgateway-proxy
+  traffic:
+    rateLimit:
+      global:
+        domain: token-budgets
+        backendRef:
+          kind: Service
+          name: rate-limit-server
+          namespace: agentgateway-system
+          port: 8081
+        descriptors:
+          - entries:
+            - name: apiKey
+              expression: 'apiKey.tier'
+            - name: user_id
+              expression: 'apiKey.user_id'
+            unit: Tokens
